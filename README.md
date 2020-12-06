@@ -1,25 +1,13 @@
-# Word-level language modeling RNN
+***Question 1:***
+========================================================================
+data.py: data preprocessing and corpus generation
+========================================================================
+model.py: implementation of the FNN models
+========================================================================
+main.py: training and prediction usinf the FNN models
 
-This example trains a multi-layer RNN (Elman, GRU, or LSTM) on a language modeling task.
-By default, the training script uses the Wikitext-2 dataset, provided.
-The trained model can then be used by the generate script to generate new text.
-
-```bash 
-python main.py --cuda --epochs 6           # Train a LSTM on Wikitext-2 with CUDA
-python main.py --cuda --epochs 6 --tied    # Train a tied LSTM on Wikitext-2 with CUDA
-python main.py --cuda --epochs 6 --model Transformer --lr 5   
-                                           # Train a Transformer model on Wikitext-2 with CUDA
-python main.py --cuda --tied               # Train a tied LSTM on Wikitext-2 with CUDA for 40 epochs
-python generate.py                         # Generate samples from the trained LSTM model.
-python generate.py --cuda --model Transformer
-                                           # Generate samples from the trained Transformer model.
-```
-
-The model uses the `nn.RNN` module (and its sister modules `nn.GRU` and `nn.LSTM`)
-which will automatically use the cuDNN backend if run on CUDA with cuDNN installed.
-
-During training, if a keyboard interrupt (Ctrl-C) is received,
-training is stopped and the current model is evaluated against the test dataset.
+To run the training, specify the path of the wikitext-2 data by running 
+main.py --data=path in any IDE or use bash python main.py --data=path
 
 The `main.py` script accepts the following arguments:
 
@@ -27,26 +15,21 @@ The `main.py` script accepts the following arguments:
 optional arguments:
   -h, --help            show this help message and exit
   --data DATA           location of the data corpus
-  --model MODEL         type of recurrent net (RNN_TANH, RNN_RELU, LSTM, GRU,
-                        Transformer)
   --emsize EMSIZE       size of word embeddings
   --nhid NHID           number of hidden units per layer
-  --nlayers NLAYERS     number of layers
   --lr LR               initial learning rate
   --clip CLIP           gradient clipping
   --epochs EPOCHS       upper epoch limit
   --batch_size N        batch size
-  --bptt BPTT           sequence length
-  --dropout DROPOUT     dropout applied to layers (0 = no dropout)
-  --tied                tie the word embedding and softmax weights
+  --dropinput DROPOUT   dropout applied to input layers (0 = no dropout)
+  --drophidden DROPOUT  dropout applied to hidden layers (0 = no dropout)
   --seed SEED           random seed
   --cuda                use CUDA
   --log-interval N      report interval
   --save SAVE           path to save the final model
-  --onnx-export ONNX_EXPORT
-                        path to export the final model in onnx format
-  --nhead NHEAD         the number of heads in the encoder/decoder of the
-                        transformer model
+  --ngram		ngram size
+  --SGD variant         SGD variant used for the optimizer
+  --sharing             whether to turn on sharing between input and output embeddings
 ```
 
 With these arguments, a variety of models can be tested.
@@ -54,7 +37,39 @@ As an example, the following arguments produce slower but better models:
 
 ```bash
 python main.py --cuda --emsize 650 --nhid 650 --dropout 0.5 --epochs 40           
-python main.py --cuda --emsize 650 --nhid 650 --dropout 0.5 --epochs 40 --tied    
+python main.py --cuda --emsize 650 --nhid 650 --dropout 0.5 --epochs 40 --sharing   
 python main.py --cuda --emsize 1500 --nhid 1500 --dropout 0.65 --epochs 40        
-python main.py --cuda --emsize 1500 --nhid 1500 --dropout 0.65 --epochs 40 --tied 
+python main.py --cuda --emsize 1500 --nhid 1500 --dropout 0.65 --epochs 40  
+
 ```
+
+best models will be saved in the same folder after training
+========================================================================
+
+generate.py: generate texts using the saved model from running main.py. 
+Options are provided to use the model with sharing or without sharing 
+for text generation (through user input).
+generated files are saved as "generated sharing.txt"/"generated nosharing.txt"
+
+***Question 2:***
+========================================================================
+original.py: unmodified script
+========================================================================
+main.py: training using CNN layers for word-level encoder
+
+1) Download the codebase with CoNLL NER dataset from https://github.com/jayavardhanr/End-to-end-Sequence-Labeling-via-Bi-directional-LSTM-CNNs-CRF-Tutorial
+2) Download GloVe vectors and extract glove.6B.100d.txt into "./data/" folder from http://nlp.stanford.edu/data/glove.6B.zip
+3) Add main.py inside the downloaded folder
+4) Parameters can be edited inside main.py script
+num_cnn_layers: number of CNN layers to use for word-level encoder (between 1-5)
+char_dim: character embedding dimension
+word_dim: token embedding dimension
+word_lstm_dim: token hidden layer size
+crf: enable or disable crf
+dropout: dropout in the input
+epoch: number of epoch to run
+
+5) To train, set parameters['reload'] = False located right after function adjust_learning_rate(optimizer, lr). Then run the script.
+6) Plot and results will be generated after training
+
+
